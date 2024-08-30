@@ -9,6 +9,8 @@ def main():
     pipeline = None
     out = None
     output_path = ""
+    frame_count = 0  # Initialize frame_count here
+
     try:
         # Configure depth and color streams
         pipeline = rs.pipeline()
@@ -41,7 +43,6 @@ def main():
         print(f"VideoWriter created successfully. Recording to {output_path}")
         print("Press 'q' to stop recording...")
 
-        frame_count = 0
         while True:
             # Wait for a coherent pair of frames: depth and color
             frames = pipeline.wait_for_frames()
