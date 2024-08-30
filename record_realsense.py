@@ -4,6 +4,7 @@ import cv2
 import time
 import signal
 import sys
+import os
 
 # Global flag to control recording
 recording = True
@@ -15,7 +16,6 @@ def signal_handler(sig, frame):
 
 # Register the signal handler
 signal.signal(signal.SIGINT, signal_handler)
-
 
 def main():
     print("Starting RealSense camera...")
@@ -29,7 +29,6 @@ def main():
         pipeline_profile = config.resolve(pipeline_wrapper)
         device = pipeline_profile.get_device()
         device_product_line = str(device.get_info(rs.camera_info.product_line))
-
         print(f"Found device: {device_product_line}")
 
         # Configure the pipeline to stream the color sensor
@@ -41,14 +40,14 @@ def main():
 
         # Create a VideoWriter object
         timestamp = time.strftime("%Y%m%d-%H%M%S")
-        output_path = f'/app/output/output_{timestamp}.mp4'
+        output_path = f'output_{timestamp}.mp4'
         out = cv2.VideoWriter(output_path, 
-                              cv2.VideoWriter_fourcc(*'mp4v'), 30, (640, 480))
+                              cv2.VideoWriter_fourcc(*'avc1'), 30, (640, 480))
 
         print(f"Recording to {output_path}")
         print("Press 'q' to stop recording...")
 
-        while True:
+        while recording:
             # Wait for a coherent pair of frames: depth and color
             frames = pipeline.wait_for_frames()
             color_frame = frames.get_color_frame()
@@ -84,3 +83,4 @@ def main():
 if __name__ == "__main__":
     main()
     print("Recording finished.")
+    print(f"Output video saved to: {os.path.abspath(output_path)}")
