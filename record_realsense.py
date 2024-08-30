@@ -1,6 +1,6 @@
 import cv2
 import time
-import os
+from datetime import datetime
 
 class VideoRecorder():
     def __init__(self, name="output.mp4", camindex=0, fps=30):
@@ -20,9 +20,15 @@ class VideoRecorder():
         while self.open:
             ret, video_frame = self.video_cap.read()
             if ret:
+                # Get current timestamp
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+                
+                # Add timestamp to the frame
+                cv2.putText(video_frame, timestamp, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                
                 self.video_out.write(video_frame)
                 self.frame_counts += 1
-                cv2.imshow("Recording...", video_frame)
+                cv2.imshow("Recording... Press 'q' to stop", video_frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     self.stop()
             else:
@@ -36,7 +42,7 @@ class VideoRecorder():
             cv2.destroyAllWindows()
 
     def start(self):
-        print("Press 'q' in the video window to stop recording")
+        print("Recording started. Press 'q' in the video window to stop recording")
         self.record()
 
 if __name__ == '__main__':
