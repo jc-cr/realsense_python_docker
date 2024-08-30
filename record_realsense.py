@@ -6,6 +6,9 @@ import os
 
 def main():
     print("Starting RealSense camera...")
+    pipeline = None
+    out = None
+    output_path = ""
     try:
         # Configure depth and color streams
         pipeline = rs.pipeline()
@@ -28,12 +31,17 @@ def main():
         # Create a VideoWriter object
         timestamp = time.strftime("%Y%m%d-%H%M%S")
         output_path = f'output_{timestamp}.mp4'
+        print(f"Attempting to create VideoWriter for: {output_path}")
         out = cv2.VideoWriter(output_path, 
                               cv2.VideoWriter_fourcc(*'avc1'), 30, (640, 480))
+        
+        if not out.isOpened():
+            raise Exception("Failed to open VideoWriter")
 
-        print(f"Recording to {output_path}")
+        print(f"VideoWriter created successfully. Recording to {output_path}")
         print("Press 'q' to stop recording...")
 
+        frame_count = 0
         while True:
             # Wait for a coherent pair of frames: depth and color
             frames = pipeline.wait_for_frames()
@@ -47,6 +55,7 @@ def main():
 
             # Write the frame
             out.write(color_image)
+            frame_count += 1
 
             # Display the frame
             cv2.imshow('RealSense', color_image)
@@ -58,20 +67,24 @@ def main():
 
     except Exception as e:
         print(f"An error occurred: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
         print("Cleaning up...")
-        # Stop streaming
-        pipeline.stop()
-        # Release the VideoWriter
-        out.release()
-        # Close OpenCV windows
+        if pipeline:
+            pipeline.stop()
+        if out:
+            out.release()
         cv2.destroyAllWindows()
 
-    print("Recording finished.")
+    print(f"Recording finished. Frames recorded: {frame_count}")
     if os.path.exists(output_path):
         print(f"Output video saved to: {os.path.abspath(output_path)}")
+        print(f"File size: {os.path.getsize(output_path)} bytes")
     else:
-        print("No output file was created or the file is missing.")
+        print(f"No output file was created or the file is missing at: {output_path}")
+        print("Current working directory:", os.getcwd())
+        print("Files in current directory:", os.listdir())
 
 if __name__ == "__main__":
     main()
