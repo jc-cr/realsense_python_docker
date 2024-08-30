@@ -3,13 +3,17 @@ import time
 from datetime import datetime
 
 class VideoRecorder():
-    def __init__(self, name="output.mp4", camindex=0, fps=30):
+    def __init__(self, name_prefix="recording", camindex=0, fps=30):
         self.open = True
         self.device_index = camindex
         self.fps = fps
         self.fourcc = "mp4v"
         self.frameSize = (640, 480)
-        self.video_filename = name
+        
+        # Generate filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.video_filename = f"{name_prefix}_{timestamp}.mp4"
+        
         self.video_cap = cv2.VideoCapture(self.device_index)
         self.video_writer = cv2.VideoWriter_fourcc(*self.fourcc)
         self.video_out = cv2.VideoWriter(self.video_filename, self.video_writer, self.fps, self.frameSize)
@@ -20,12 +24,6 @@ class VideoRecorder():
         while self.open:
             ret, video_frame = self.video_cap.read()
             if ret:
-                # Get current timestamp
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-                
-                # Add timestamp to the frame
-                cv2.putText(video_frame, timestamp, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-                
                 self.video_out.write(video_frame)
                 self.frame_counts += 1
                 cv2.imshow("Recording... Press 'q' to stop", video_frame)
@@ -42,7 +40,8 @@ class VideoRecorder():
             cv2.destroyAllWindows()
 
     def start(self):
-        print("Recording started. Press 'q' in the video window to stop recording")
+        print(f"Recording started. Output file: {self.video_filename}")
+        print("Press 'q' in the video window to stop recording")
         self.record()
 
 if __name__ == '__main__':
